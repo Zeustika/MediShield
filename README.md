@@ -2,11 +2,6 @@
 
 MediShield is a Python desktop application for embedding and verifying digital watermarks in images using **DWT (Discrete Wavelet Transform)** and **SVD (Singular Value Decomposition)** techniques. This tool allows users to apply invisible watermark text to images, verify their authenticity, and extract embedded watermarks from modified images.
 
-## 📸 ScreenShot
-
-![image](https://github.com/user-attachments/assets/b35e13e6-2df9-4bb5-8f45-ee12953c0dd2)
-
-![image](https://github.com/user-attachments/assets/a42909a5-087a-41cc-a59a-9a2e12f7aefd)
 
 
 
@@ -72,3 +67,10 @@ MediShield is a Python desktop application for embedding and verifying digital w
 - `requirements.txt` – Dependencies
 
 ---
+
+## 📸 ScreenShot
+
+![image](https://github.com/user-attachments/assets/b35e13e6-2df9-4bb5-8f45-ee12953c0dd2)
+
+![image](https://github.com/user-attachments/assets/a42909a5-087a-41cc-a59a-9a2e12f7aefd)
+
