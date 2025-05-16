@@ -69,18 +69,19 @@ MediShield is a Python desktop application for embedding and verifying digital w
 
 ---
 
-## 📸 ScreenShot
-V1
+# 📸 ScreenShot
+## V1
 ![image](https://github.com/user-attachments/assets/b35e13e6-2df9-4bb5-8f45-ee12953c0dd2)
 
 ![image](https://github.com/user-attachments/assets/a42909a5-087a-41cc-a59a-9a2e12f7aefd)
 
-V2(current)
+## V2(current)
 ![image](https://github.com/user-attachments/assets/28c9a3fd-4449-4b9d-ab5b-0d52b7469558)
 
 ![image](https://github.com/user-attachments/assets/ec5661f0-11a3-44a5-8d32-3f1235705418)
 
+![image](https://github.com/user-attachments/assets/f9878ec3-10f4-4f99-8c26-e28606b0cdab)
+
 ![image](https://github.com/user-attachments/assets/c83a4ebe-0b31-4ba4-a14a-784eba951c35)
 
-![image](https://github.com/user-attachments/assets/f9878ec3-10f4-4f99-8c26-e28606b0cdab)
 
