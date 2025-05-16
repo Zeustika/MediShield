@@ -1,6 +1,6 @@
 import numpy as np
 import pywt
-from PIL import Image, ImageTk, ImageOps, ImageDraw, ImageFont # Added ImageDraw, ImageFont
+from PIL import Image, ImageTk, ImageOps, ImageDraw, ImageFont
 import scipy.linalg
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -10,55 +10,45 @@ import os
 import threading
 import time
 import platform
-# Import ctypes windll specifically for Windows API calls
+
+
 if platform.system() == "Windows":
     try:
         from ctypes import windll
     except ImportError:
-        windll = None # Handle case where ctypes is not available (unlikely on Windows)
+        windll = None
 else:
-    windll = None # Not available on non-Windows platforms
+    windll = None
 
 # Set tema dan mode tampilan
-customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
-customtkinter.set_default_color_theme("green")  # Themes: "blue", "green", "dark-blue"
+customtkinter.set_appearance_mode("System") 
+customtkinter.set_default_color_theme("green")
 
 class WatermarkingApp(customtkinter.CTk):
 
-    def __init__(self): # Corrected __init__ method name
-        super().__init__()
 
-        # Icon setting - Simplified and improved for Windows taskbar
-        # Use __file__ to get the directory of the current script
+    def __init__(self):
+        super().__init__()
         base_dir = os.path.dirname(os.path.realpath(__file__))
         icon_path = os.path.join(base_dir, "assets/icon.ico")
 
         # Ensure the assets directory and icon file exist
         if not os.path.exists(icon_path):
             print(f"Warning: Icon file not found at {icon_path}. Window may not have an icon.")
-            icon_path = None # Set to None if icon is not found
+            icon_path = None
 
         if icon_path:
             try:
-                # Set icon for the window itself
                 self.iconbitmap(default=icon_path)
             except Exception as e:
                 print(f"Warning: Could not set window icon from {icon_path}: {e}")
 
         if platform.system() == "Windows" and windll is not None:
-            # Set AppUserModelID for taskbar grouping on Windows
-            # This helps ensure the window appears correctly in the taskbar
             try:
                 myappid = 'TugasKI.medishield.1.0'
                 windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-                # On some systems, setting the taskbar icon might require a small delay or be called after the window is mapped.
-                # self.after(100, lambda: self.wm_iconbitmap(icon_path)) # Optional retry
             except Exception as e:
                 print(f"Error setting AppUserModelID or taskbar icon: {e}")
-
-        # Setup borderless window with custom title bar
-        # NOTE: overrideredirect(True) disables native window manager features like snapping.
-        # We will implement manual maximize/restore but native snapping will not work.
         self.overrideredirect(True)
 
         # Konfigurasi window utama
@@ -260,8 +250,6 @@ class WatermarkingApp(customtkinter.CTk):
         self.extraction_canvas = customtkinter.CTkLabel(self.tab_extraction, text="Extract watermark first")
         self.extraction_canvas.grid(row=0, column=0, padx=20, pady=20, sticky="nsew") # Added sticky
 
-
-        # Progress frame (hidden initially)
         # Place progress frame in row 1
         self.progress_frame = customtkinter.CTkFrame(self.main_frame)
         self.progress_frame.grid(row=1, column=0, padx=10, pady=10, sticky="sew")
@@ -289,15 +277,14 @@ class WatermarkingApp(customtkinter.CTk):
         else:
             self.maximize_window()
 
+
     def maximize_window(self):
         """Maximize window to fill the screen"""
         if not self.is_maximized:
             # Save current geometry before maximizing
             self.normal_geometry = self.geometry()
-            # Set geometry to screen size and position at 0,0
             self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}+0+0")
             self.is_maximized = True
-            # Update button appearance or state if needed (optional)
 
 
     def restore_window(self):
@@ -313,19 +300,20 @@ class WatermarkingApp(customtkinter.CTk):
 
     def start_move(self, event):
         """Begin window drag operation"""
-        # Only allow dragging when not maximized
+        # biar bisa gerak
         if not self.is_maximized:
             self._drag_active = True
             self.x = event.x
             self.y = event.y
-            # Bring window to front when dragging starts
             self.lift()
+
 
     def stop_move(self, event):
         """End window drag operation"""
         self._drag_active = False
         self.x = 0
         self.y = 0
+
 
     def do_move(self, event):
         """Move window during drag operation"""
@@ -342,29 +330,23 @@ class WatermarkingApp(customtkinter.CTk):
             # Apply new position
             self.geometry(f"+{new_x}+{new_y}")
 
+
     def minimize_window(self):
         """Minimize the window"""
-        # Save state and geometry before minimizing for proper restoration
         self.was_maximized_before_minimize = self.is_maximized
-        # Save the current geometry. If maximized, this will be the maximized geometry,
-        # but the on_map will handle restoring to the *correct* state (maximized or normal).
         self.normal_geometry_before_minimize = self.geometry()
 
-        self.wm_withdraw() # Hide the window
-        # Temporarily turn off overrideredirect so the window shows in the taskbar with native decorations when iconified
+        self.wm_withdraw()
         self.wm_overrideredirect(False)
-        self.wm_iconify() # Minimize the window
+        self.wm_iconify()
 
         # Bind handler to be called when the window is restored (mapped)
         self.bind("<Map>", self.on_map)
 
+
     def on_map(self, event):
         """Handle window restore from minimized state"""
-        # This handler is called when the window is deiconified (restored from minimize)
-        # Unbind the handler immediately to prevent multiple calls
         self.unbind("<Map>")
-
-        # Restore overrideredirect state for the custom title bar
         self.wm_overrideredirect(True)
 
         # Restore the window geometry and state based on what it was before minimizing
@@ -392,10 +374,11 @@ class WatermarkingApp(customtkinter.CTk):
         self.was_maximized_before_minimize = False
 
 
-    # --- Image and Watermarking Methods (Rest of your code) ---
+    # --- Image and Watermarking Methods ---
 
     def update_alpha_label(self, value):
         self.alpha_value_label.configure(text=f"{value:.1f}")
+
 
     def upload_image(self):
         file_path = filedialog.askopenfilename(
@@ -428,6 +411,7 @@ class WatermarkingApp(customtkinter.CTk):
             except Exception as e:
                 messagebox.showerror("Error", f"Could not open or process image: {e}")
                 self.status_bar.configure(text="Error loading image")
+
 # batas code
 
     def upload_compare_image(self):
@@ -436,7 +420,7 @@ class WatermarkingApp(customtkinter.CTk):
         )
         if file_path:
             try:
-                img = Image.open(file_path).convert("L") # Convert to grayscale
+                img = Image.open(file_path).convert("L")
                 self.comparison_image = np.array(img)
                 self.compare_path_to_image = file_path
 
@@ -502,6 +486,7 @@ class WatermarkingApp(customtkinter.CTk):
             ctk_label.configure(image=None, text=f"Display Error: {str(e)}")
             ctk_label.image = None
             
+
     def process_with_progress(self):
         if self.original_image is None:
             messagebox.showwarning("Warning", "Please upload an image first.")
@@ -545,7 +530,7 @@ class WatermarkingApp(customtkinter.CTk):
 
             # Generate a watermark image (size related to the LL band size)
             # Let's target a watermark size related to the LL band after DWT
-            wavelet = 'haar'
+            wavelet = 'Zeus'
             level = 2 # Example DWT level
             if max_power_of_2 < (2**level):
                  level = int(math.log2(max_power_of_2 / 2)) # Adjust level if image is too small
@@ -566,51 +551,29 @@ class WatermarkingApp(customtkinter.CTk):
 
             # 2. & 3. Perform SVD on the selected band (LL)
             U, S, V = np.linalg.svd(LL_band)
-            self.original_svd_values['LL_S'] = S.copy() # Store a copy of original singular values for extraction
-
-            # Ensure watermark singular values representation matches S dimensions
-            # A simple way is to flatten the watermark image to a 1D array
-            # and scale it to match the number of singular values.
-            # A more robust method involves SVD on the watermark itself and embedding W_s.
+            self.original_svd_values['LL_S'] = S.copy()
             s_length = len(S)
             watermark_flat = watermark_np.flatten()
-            # Resize or resample the flattened watermark to match the length of S
-            # Simple resampling by taking evenly spaced samples:
             watermark_sv_like = np.interp(np.linspace(0, len(watermark_flat) - 1, s_length),
                                           np.arange(len(watermark_flat)),
                                           watermark_flat)
-            watermark_sv_like = watermark_sv_like / 255.0 # Normalize to 0-1
-
-
-            # 4. Embed the watermark into the singular values S
-            # S' = S + alpha * W_s' (where W_s' is the watermark representation)
-            # Let's use S' = S + alpha * watermark_sv_like * max(S) * factor
-            # The factor controls the strength of embedding relative to the original singular values.
-            embedding_factor = 0.1 # Adjust this factor based on desired imperceptibility and robustness
+            watermark_sv_like = watermark_sv_like / 255.0
+            embedding_factor = 0.1
             modified_S = S + alpha * watermark_sv_like * np.max(S) * embedding_factor
 
-
-            # 5. Reconstruct the modified LL band
-            # U (m, k), modified_S (k,), V (k, n). Reconstruction: U @ diag(modified_S) @ V
             m, n = LL_band.shape
             k = min(m, n)
-            # Create diagonal matrix from modified singular values
-            S_matrix = np.zeros((m, n)) # Create a matrix of the same shape as LL_band
+            S_matrix = np.zeros((m, n))
             # Place the diagonal singular values
             np.fill_diagonal(S_matrix, modified_S)
-
-
-            # Matrix multiplication: U @ S_matrix @ V
-            # Note: np.linalg.svd returns V (k, n), which is V.T (transpose) from the U * S * V.T convention.
             modified_LL_band = U @ S_matrix @ V
-
 
             # Replace the original LL band with the modified one
             modified_coeffs = list(coeffs)
             modified_coeffs[0] = modified_LL_band
             modified_coeffs = tuple(modified_coeffs) # Convert back to tuple
 
-            # 6. Perform inverse DWT
+            # Perform inverse DWT
             watermarked_cropped_image = pywt.waverec2(modified_coeffs, wavelet)
 
             # Ensure the watermarked data is within valid pixel range [0, 255]
@@ -643,9 +606,6 @@ class WatermarkingApp(customtkinter.CTk):
         # Enable relevant buttons
         self.process_button.configure(state="normal")
         self.save_button.configure(state="normal")
-        # Keep verify/extract disabled until a comparison image is uploaded
-        # self.verify_button.configure(state="normal")
-        # self.extract_button.configure(state="normal")
 
         self.status_bar.configure(text="Watermarking complete.")
         self.tabview.set("Watermarked Image") # Switch to watermarked tab
@@ -764,18 +724,10 @@ class WatermarkingApp(customtkinter.CTk):
                 similarity_message = "Images are identical (PSNR: Infinity)"
             else:
                 max_pixel = 255.0
-                # Add a small epsilon to MSE to avoid log(0) in case of near-zero differences
                 epsilon = 1e-10
                 psnr = 10 * np.log10((max_pixel**2) / (mse + epsilon))
                 similarity_message = f"Images similarity (PSNR): {psnr:.2f} dB"
-
-            # You could also calculate SSIM (Structural Similarity Index) for better perceptual similarity
-            # Requires scikit-image, which is not in the imported list.
-
-            # Display comparison result (e.g., difference image)
-            # Enhance contrast of the difference image for better visibility
             difference_image_np = np.abs(original_np - comparison_np)
-            # Scale difference to 0-255 for display
             max_diff = np.max(difference_image_np)
             if max_diff > 0:
                 difference_image_np = (difference_image_np / max_diff) * 255
@@ -820,7 +772,7 @@ class WatermarkingApp(customtkinter.CTk):
             cropped_watermarked = watermarked_image_np[:max_power_of_2, :max_power_of_2]
 
             # Use the same DWT level and wavelet as during embedding
-            wavelet = 'haar'
+            wavelet = 'Zeus v2'
             level = 2 # Must match embedding level
             if max_power_of_2 < (2**level):
                  level = int(math.log2(max_power_of_2 / 2))
@@ -833,8 +785,6 @@ class WatermarkingApp(customtkinter.CTk):
             LL_original = coeffs_original[0]
             LL_watermarked = coeffs_watermarked[0]
 
-            # 2. Perform SVD on the LL band of the original and watermarked image
-            # We need SVD of both original and watermarked LL bands for extraction
             U_orig, S_original_extracted, V_orig = np.linalg.svd(LL_original)
             U_w, S_watermarked_extracted, V_w = np.linalg.svd(LL_watermarked)
 
@@ -852,71 +802,37 @@ class WatermarkingApp(customtkinter.CTk):
                 self.status_bar.configure(text="Extraction failed: SV length mismatch.")
                 return
 
+            alpha = self.alpha_slider.get()
 
-            # 3. Extract the watermark singular values representation
-            # Based on the embedding rule S' = S + alpha * W_s' * scale
-            # W_s' * scale = (S' - S) / alpha
-            alpha = self.alpha_slider.get() # Get the alpha used during embedding (user input)
-
-            # It's crucial to use the *same* alpha and scaling factor used during embedding.
-            # In a real system, alpha might be saved or derived from a key.
-            # Assuming the alpha slider value is the correct alpha:
             if alpha == 0:
                  messagebox.showwarning("Warning", "Alpha was set to 0. Extraction may be inaccurate.")
-                 # Avoid division by zero if alpha is 0, though the slider prevents this.
                  alpha = 1e-9 # Use a very small number to avoid division by zero
 
-
-            # Use the singular values extracted from the watermarked image and the stored original singular values
-            # to calculate the extracted watermark signal.
             extracted_watermark_signal = (S_watermarked_extracted - S_original_stored) / alpha
 
-            # The extracted_watermark_signal represents the singular values of the watermark
-            # scaled by the embedding factor. To visualize it as an image, we need to reconstruct.
-            # This reconstruction is approximate and depends on the original watermark's structure
-            # and the embedding method.
-
-            # Simple visualization: treat the extracted signal as a grayscale image
-            # Rescale the signal to a visual range (e.g., 0-255)
-            # This requires knowing the expected range of the watermark signal.
-            # If the watermark_sv_like was scaled to 0-1, and then scaled by np.max(S) * embedding_factor,
-            # we need to reverse that scaling.
-
-            # Attempt to reverse the scaling factor used during embedding (approximate)
-            embedding_factor = 0.1 # Must match the embedding factor
-            # Use the singular values from the original LL band calculation during extraction for scaling reference
+            embedding_factor = 0.1
             scale_reference = np.max(S_original_extracted) * embedding_factor
-            if scale_reference > 1e-9: # Avoid division by near zero
+            if scale_reference > 1e-9:
                  extracted_watermark_signal_rescaled = extracted_watermark_signal / scale_reference
             else:
-                 extracted_watermark_signal_rescaled = extracted_watermark_signal # No scaling if reference is zero/small
+                 extracted_watermark_signal_rescaled = extracted_watermark_signal
 
-
-            # Convert the 1D array into a 2D image for display
-            # Create a square image from the signal
             signal_length = len(extracted_watermark_signal_rescaled)
             img_side = int(math.sqrt(signal_length))
 
-            # Adjust size if not a perfect square
             if img_side * img_side > signal_length:
-                 img_side = int(math.sqrt(signal_length)) # Recalculate if needed
-            # Take the first img_side*img_side elements
+                 img_side = int(math.sqrt(signal_length))
             extracted_watermark_signal_reshaped = extracted_watermark_signal_rescaled[:img_side*img_side]
 
-            # Reshape into a 2D array
             extracted_watermark_image_np = extracted_watermark_signal_reshaped.reshape((img_side, img_side))
 
-
-            # Scale the values to 0-255 range for grayscale image display
             min_val = np.min(extracted_watermark_image_np)
             max_val = np.max(extracted_watermark_image_np)
 
             if max_val - min_val > 1e-9:
-                # Scale to 0-255
                 extracted_watermark_image_np = 255 * (extracted_watermark_image_np - min_val) / (max_val - min_val)
             else:
-                # If all values are the same, make it mid-gray or white/black depending on the value
-                 extracted_watermark_image_np = np.full((img_side, img_side), 128.0) # Mid-gray
+                 extracted_watermark_image_np = np.full((img_side, img_side), 128.0)
 
 
             extracted_watermark_image_np = np.clip(extracted_watermark_image_np, 0, 255).astype(np.uint8)
@@ -1017,7 +933,7 @@ class WatermarkingApp(customtkinter.CTk):
             
             # Update canvas
             canvas.configure(image=photo, text="")
-            canvas.image = photo  # Keep a reference to prevent garbage collection
+            canvas.image = photo 
         else:
             canvas.configure(text=label_text, image=None)
             canvas.image = None
