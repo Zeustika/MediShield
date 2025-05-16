@@ -1,5 +1,5 @@
-numpy==1.24.0
-scipy==1.9.3
-pywt
+numpy
+PyWavelets
 Pillow
+scipy
 customtkinter
